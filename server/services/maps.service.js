@@ -56,7 +56,7 @@ async function geocodeDestination(query) {
   }
 
   try {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`;
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&accept-language=en`;
     const res = await fetch(url, { headers: { "User-Agent": "AITravelPlanner/1.0" } });
     const data = await res.json();
     if (Array.isArray(data) && data.length > 0) {
@@ -104,7 +104,7 @@ async function searchPlaces(query) {
 
   // Fallback to OSM Nominatim
   try {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`;
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&accept-language=en`;
     const res = await fetch(url, { headers: { "User-Agent": "AITravelPlanner/1.0" } });
     const data = await res.json();
     if (Array.isArray(data)) {
