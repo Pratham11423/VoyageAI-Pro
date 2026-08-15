@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Create custom axios instance
 const api = axios.create({
-  baseURL: "/",
+  baseURL: import.meta.env.VITE_API_URL || "/",
   timeout: 30000, // 30 seconds
   headers: {
     "Content-Type": "application/json",
