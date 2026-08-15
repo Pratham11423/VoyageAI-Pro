@@ -1,7 +1,40 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
-import { User, Settings, Save, LogOut, Compass, Heart, Calendar } from "lucide-react";
+import { User, Settings, Save, LogOut, Compass, Heart, Calendar, Search, ChevronDown, Check } from "lucide-react";
+
+const CURRENCIES = [
+  { code: "USD", name: "US Dollar", symbol: "$" },
+  { code: "EUR", name: "Euro", symbol: "€" },
+  { code: "GBP", name: "British Pound", symbol: "£" },
+  { code: "JPY", name: "Japanese Yen", symbol: "¥" },
+  { code: "AUD", name: "Australian Dollar", symbol: "$" },
+  { code: "CAD", name: "Canadian Dollar", symbol: "$" },
+  { code: "CHF", name: "Swiss Franc", symbol: "CHF" },
+  { code: "CNY", name: "Chinese Yuan", symbol: "¥" },
+  { code: "INR", name: "Indian Rupee", symbol: "₹" },
+  { code: "NZD", name: "New Zealand Dollar", symbol: "$" },
+  { code: "SGD", name: "Singapore Dollar", symbol: "$" },
+  { code: "HKD", name: "Hong Kong Dollar", symbol: "$" },
+  { code: "SEK", name: "Swedish Krona", symbol: "kr" },
+  { code: "KRW", name: "South Korean Won", symbol: "₩" },
+  { code: "NOK", name: "Norwegian Krone", symbol: "kr" },
+  { code: "MXN", name: "Mexican Peso", symbol: "$" },
+  { code: "RUB", name: "Russian Ruble", symbol: "₽" },
+  { code: "ZAR", name: "South African Rand", symbol: "R" },
+  { code: "TRY", name: "Turkish Lira", symbol: "₺" },
+  { code: "BRL", name: "Brazilian Real", symbol: "R$" },
+  { code: "DKK", name: "Danish Krone", symbol: "kr" },
+  { code: "PLN", name: "Polish Zloty", symbol: "zł" },
+  { code: "THB", name: "Thai Baht", symbol: "฿" },
+  { code: "IDR", name: "Indonesian Rupiah", symbol: "Rp" },
+  { code: "ILS", name: "Israeli New Shekel", symbol: "₪" },
+  { code: "PHP", name: "Philippine Peso", symbol: "₱" },
+  { code: "AED", name: "UAE Dirham", symbol: "د.إ" },
+  { code: "SAR", name: "Saudi Riyal", symbol: "ر.س" },
+  { code: "MYR", name: "Malaysian Ringgit", symbol: "RM" },
+  { code: "VND", name: "Vietnamese Dong", symbol: "₫" },
+];
 
 export const ProfileSettingsView = ({
   savedTripsCount,
@@ -15,9 +48,27 @@ export const ProfileSettingsView = ({
   const [pace, setPace] = useState("moderate");
   const [isSaving, setIsSaving] = useState(false);
 
+  // Searchable Dropdown state
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const dropdownRef = useRef(null);
+
   useEffect(() => {
     if (user?.name) setName(user.name);
+    if (user?.defaultCurrency) setCurrency(user.defaultCurrency);
+    if (user?.pacePreference) setPace(user.pacePreference);
   }, [user]);
+
+  // Click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -44,6 +95,14 @@ export const ProfileSettingsView = ({
       setIsSaving(false);
     }
   };
+
+  const selectedCurrencyInfo = CURRENCIES.find((c) => c.code === currency) || CURRENCIES[0];
+
+  const filteredCurrencies = CURRENCIES.filter(
+    (c) =>
+      c.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
@@ -131,19 +190,59 @@ export const ProfileSettingsView = ({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
+            {/* Searchable Dropdown */}
+            <div className="relative" ref={dropdownRef}>
               <label className="block text-xs font-semibold text-slate-300 mb-1.5">Default Currency</label>
-              <select
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-500"
+              <div
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none cursor-pointer flex items-center justify-between hover:border-slate-650 transition-all"
               >
-                <option value="USD">USD ($ - US Dollar)</option>
-                <option value="EUR">EUR (€ - Euro)</option>
-                <option value="GBP">GBP (£ - British Pound)</option>
-                <option value="JPY">JPY (¥ - Japanese Yen)</option>
-                <option value="AUD">AUD ($ - Australian Dollar)</option>
-              </select>
+                <span>
+                  {selectedCurrencyInfo.code} ({selectedCurrencyInfo.symbol} - {selectedCurrencyInfo.name})
+                </span>
+                <ChevronDown className="w-4 h-4 text-slate-400" />
+              </div>
+
+              {isDropdownOpen && (
+                <div className="absolute left-0 right-0 mt-1.5 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 p-2 space-y-2 animate-in fade-in duration-100">
+                  <div className="relative flex items-center">
+                    <Search className="absolute left-3 w-3.5 h-3.5 text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder="Search currency..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-9 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-500"
+                      autoFocus
+                    />
+                  </div>
+
+                  <div className="max-h-48 overflow-y-auto space-y-0.5 custom-scrollbar pr-1">
+                    {filteredCurrencies.length > 0 ? (
+                      filteredCurrencies.map((c) => (
+                        <div
+                          key={c.code}
+                          onClick={() => {
+                            setCurrency(c.code);
+                            setIsDropdownOpen(false);
+                            setSearchQuery("");
+                          }}
+                          className={`flex items-center justify-between px-3 py-2 text-xs rounded-lg cursor-pointer transition-all ${
+                            currency === c.code
+                              ? "bg-cyan-950/80 text-cyan-300 font-bold"
+                              : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                          }`}
+                        >
+                          <span>{c.code} ({c.symbol} - {c.name})</span>
+                          {currency === c.code && <Check className="w-3.5 h-3.5 text-cyan-400" />}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center text-xs text-slate-500 py-3">No currencies found</div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div>
