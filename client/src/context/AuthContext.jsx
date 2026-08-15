@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import axios from "axios";
+import api from "../services/api";
 
 const AuthContext = createContext(undefined);
 
@@ -8,13 +8,11 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem("token") || null);
   const [loading, setLoading] = useState(true);
 
-  // Set up Axios default headers when token changes
+  // Sync token to localStorage when it changes
   useEffect(() => {
     if (token) {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       localStorage.setItem("token", token);
     } else {
-      delete axios.defaults.headers.common["Authorization"];
       localStorage.removeItem("token");
     }
   }, [token]);
@@ -27,9 +25,7 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
         return;
       }
-      const res = await axios.get("/api/auth/profile", {
-        headers: { Authorization: `Bearer ${savedToken}` }
-      });
+      const res = await api.get("/api/auth/profile");
       if (res.data && res.data.user) {
         setUser({
           userId: res.data.user.id || res.data.user._id,
@@ -58,7 +54,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, pass) => {
     try {
-      const res = await axios.post("/api/auth/login", { email, password: pass });
+      const res = await api.post("/api/auth/login", { email, password: pass });
       const data = res.data;
       
       setUser({
@@ -78,7 +74,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (name, email, pass) => {
     try {
-      const res = await axios.post("/api/auth/register", { name, email, password: pass });
+      const res = await api.post("/api/auth/register", { name, email, password: pass });
       const data = res.data;
       
       setUser({
@@ -98,7 +94,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await axios.post("/api/auth/logout");
+      await api.post("/api/auth/logout");
     } catch (e) {
       console.error("Logout error", e);
     } finally {
