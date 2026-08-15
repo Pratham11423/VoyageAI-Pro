@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Environment configurations (API keys, passwords, database URIs)
+.env
+client/.env
+server/.env
+
+# Production builds
+dist/
+client/dist/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+server/logs/
+logs/
+*.log
+
+# OS Metadata
+.DS_Store
+Thumbs.db
+
+# Uploaded avatars/files
+server/uploads/*
+!server/uploads/.gitkeep

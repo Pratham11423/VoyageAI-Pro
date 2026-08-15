@@ -1,0 +1,16 @@
+{
+  "name": "ai-travel-planner-mern",
+  "version": "1.0.0",
+  "description": "Production-ready MERN Stack AI Travel Planner application",
+  "private": true,
+  "scripts": {
+    "install-client": "npm install --prefix client",
+    "install-server": "npm install --prefix server",
+    "install-all": "npm run install-client && npm run install-server",
+    "client": "npm run dev --prefix client",
+    "server": "npm run dev --prefix server",
+    "dev": "npm run server"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
