@@ -316,7 +316,7 @@ function generateFallbackTrip(params, geo) {
         },
       ],
       dailyEstimatedCostUSD: dailyFoodCost + dailyAttractionCost + dailyTransportCost,
-      insiderTip: `Buy tickets online in advance to bypass morning queues in ${destName}. Use ${params.transportPref.toLowerCase()} for seamless navigation.`,
+      insiderTip: `Buy tickets online in advance to bypass morning queues in ${destName}. Use ${(params.transportPref || "Public Transport").toLowerCase()} for seamless navigation.`,
     });
   }
 
@@ -451,7 +451,7 @@ function generateFallbackTrip(params, geo) {
 
   return {
     title: `${params.durationDays}-Day Ultimate ${destName} Travel Experience`,
-    summary: `A carefully tailored ${params.durationDays}-day itinerary for ${params.travelersCount} ${params.travelersType.toLowerCase()} traveler(s) exploring ${destName}. Custom designed around ${interestsList.join(", ")} with a ${params.budgetTier} budget profile.`,
+    summary: `A carefully tailored ${params.durationDays}-day itinerary for ${params.travelersCount} ${(params.travelersType || "Solo").toLowerCase()} traveler(s) exploring ${destName}. Custom designed around ${interestsList.join(", ")} with a ${params.budgetTier} budget profile.`,
     destination: destName,
     country: geo.country,
     coordinates: { lat: baseLat, lng: baseLng },
