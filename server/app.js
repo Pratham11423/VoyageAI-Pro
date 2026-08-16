@@ -20,13 +20,14 @@ app.use(helmet({
 const allowedOrigins = [
   "http://localhost:5173",
   process.env.CLIENT_URL
-].filter(Boolean);
+].map(url => url ? url.replace(/\/$/, "") : "").filter(Boolean);
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(origin.replace(/\/$/, ""))) {
       callback(null, true);
     } else {
+      console.warn(`[CORS Warning] Blocked request from origin: ${origin}. Allowed origins are: ${JSON.stringify(allowedOrigins)}`);
       callback(new Error("Not allowed by CORS"));
     }
   },
