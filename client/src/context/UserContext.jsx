@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import axios from "axios";
+import api from "../services/api";
 import { useAuth } from "./AuthContext";
 
 const UserContext = createContext(undefined);
@@ -13,7 +13,7 @@ export const UserProvider = ({ children }) => {
     if (!user) return;
     setLoadingPref(true);
     try {
-      const res = await axios.get("/api/auth/profile/preferences");
+      const res = await api.get("/api/auth/profile/preferences");
       setPreferences(res.data.preferences);
     } catch (e) {
       console.error("Failed to load user preferences", e);
@@ -28,7 +28,7 @@ export const UserProvider = ({ children }) => {
 
   const updateProfile = async (data) => {
     try {
-      const res = await axios.put("/api/auth/profile", data);
+      const res = await api.put("/api/auth/profile", data);
       await checkAuth();
       return { success: true, user: res.data.user };
     } catch (err) {
@@ -38,7 +38,7 @@ export const UserProvider = ({ children }) => {
 
   const uploadAvatar = async (formData) => {
     try {
-      const res = await axios.post("/api/auth/profile/avatar", formData, {
+      const res = await api.post("/api/auth/profile/avatar", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       await checkAuth();
@@ -50,7 +50,7 @@ export const UserProvider = ({ children }) => {
 
   const updatePreferences = async (prefData) => {
     try {
-      const res = await axios.put("/api/auth/profile/preferences", prefData);
+      const res = await api.put("/api/auth/profile/preferences", prefData);
       setPreferences(res.data.preferences);
       return { success: true };
     } catch (err) {
@@ -60,7 +60,7 @@ export const UserProvider = ({ children }) => {
 
   const deleteAccount = async () => {
     try {
-      await axios.delete("/api/auth/profile");
+      await api.delete("/api/auth/profile");
       return { success: true };
     } catch (err) {
       return { success: false, error: err.response?.data?.error || "Failed to delete account" };

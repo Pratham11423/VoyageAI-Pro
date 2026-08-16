@@ -17,8 +17,19 @@ app.use("/api", apiLimiter);
 app.use(helmet({
   crossOriginResourcePolicy: false, // Allow local avatar access in frontend dev
 }));
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.CLIENT_URL
+].filter(Boolean);
+
 app.use(cors({
-  origin: true,
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,
 }));
 
@@ -39,7 +50,10 @@ app.use("/api", apiRoutes); // AI and Maps routing
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
-  res.status(200).json({ status: "OK", timestamp: new Date() });
+  res.status(200).json({
+    success: true,
+    message: "VoyageAI Pro API is running"
+  });
 });
 
 // Global Error Handler

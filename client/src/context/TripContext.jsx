@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import axios from "axios";
+import api from "../services/api";
 import { useAuth } from "./AuthContext";
 import { useToast } from "./ToastContext";
 import confetti from "canvas-confetti";
@@ -25,7 +25,7 @@ export const TripProvider = ({ children }) => {
     }
     setIsLoadingSaved(true);
     try {
-      const res = await axios.get("/api/trips");
+      const res = await api.get("/api/trips");
       setSavedTrips(res.data.trips || []);
     } catch (e) {
       console.error("Failed to load saved trips", e);
@@ -42,7 +42,7 @@ export const TripProvider = ({ children }) => {
     setIsGenerating(true);
     setIsSavedCurrent(false);
     try {
-      const res = await axios.post("/api/ai/generate-trip", formData);
+      const res = await api.post("/api/ai/generate-trip", formData);
       const data = res.data;
       if (data.tripData) {
         const trip = {
@@ -70,7 +70,26 @@ export const TripProvider = ({ children }) => {
         return { success: false, error: data.error };
       }
     } catch (err) {
-      const errMsg = err.response?.data?.error || "Network error generating AI travel plan.";
+      let errMsg = "Network error generating AI travel plan.";
+      if (err.response) {
+        const status = err.response.status;
+        if (status === 401) {
+          errMsg = "Session expired. Please log in again.";
+        } else if (status === 403) {
+          errMsg = "Access forbidden. You do not have permission.";
+        } else if (status === 404) {
+          errMsg = "Travel planning service endpoint not found.";
+        } else if (status === 429) {
+          errMsg = "Too many requests. Please wait a moment and try again.";
+        } else if (status >= 500) {
+          errMsg = err.response.data?.error || "Server error occurred while generating itinerary. Please try again.";
+        } else {
+          errMsg = err.response.data?.error || errMsg;
+        }
+      } else if (err.request) {
+        errMsg = "Unable to connect to the travel planning service. Please check your internet connection or try again later.";
+      }
+      console.error("[TripContext] Error generating trip:", err);
       showToast(errMsg, "error");
       return { success: false, error: errMsg };
     } finally {
@@ -82,7 +101,7 @@ export const TripProvider = ({ children }) => {
     if (!currentTrip) return { success: false, error: "No trip to save" };
     setIsSavingTrip(true);
     try {
-      const res = await axios.post("/api/trips", currentTrip);
+      const res = await api.post("/api/trips", currentTrip);
       setIsSavedCurrent(true);
       showToast("Trip saved to your account!", "success");
       await fetchSavedTrips();
@@ -101,7 +120,7 @@ export const TripProvider = ({ children }) => {
 
   const toggleFavorite = async (id, currentFav) => {
     try {
-      await axios.put(`/api/trips/${id}`, { isFavorite: !currentFav });
+      await api.put(`/api/trips/${id}`, { isFavorite: !currentFav });
       showToast(currentFav ? "Removed from favorites" : "Added to favorites", "success");
       await fetchSavedTrips();
     } catch (err) {
@@ -111,7 +130,7 @@ export const TripProvider = ({ children }) => {
 
   const deleteTrip = async (id) => {
     try {
-      await axios.delete(`/api/trips/${id}`);
+      await api.delete(`/api/trips/${id}`);
       showToast("Trip deleted", "info");
       await fetchSavedTrips();
     } catch (err) {
@@ -121,7 +140,7 @@ export const TripProvider = ({ children }) => {
 
   const duplicateTrip = async (id) => {
     try {
-      await axios.post(`/api/trips/${id}/duplicate`);
+      await api.post(`/api/trips/${id}/duplicate`);
       showToast("Trip duplicated!", "success");
       await fetchSavedTrips();
     } catch (err) {

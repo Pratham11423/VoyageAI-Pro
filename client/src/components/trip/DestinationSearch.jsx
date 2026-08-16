@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Search, MapPin, Sparkles, X, Globe } from "lucide-react";
-import axios from "axios";
+import api from "../../services/api";
 
 const FEATURED_DESTINATIONS = [
   { name: "Paris, France", flag: "🇫🇷", lat: 48.8566, lng: 2.3522 },
@@ -48,7 +48,7 @@ export const DestinationSearch = ({
     const timer = setTimeout(async () => {
       setIsLoading(true);
       try {
-        const res = await axios.get(`/api/maps/search?q=${encodeURIComponent(query)}`);
+        const res = await api.get(`/api/maps/search?q=${encodeURIComponent(query)}`);
         setSuggestions(res.data.results || []);
       } catch (err) {
         console.error("Failed to fetch search suggestions", err);
